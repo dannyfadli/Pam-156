@@ -12,45 +12,51 @@ import kotlinx.coroutines.launch
 
 
 class BuildViewModel(private val repo: BuildRepository) : ViewModel() {
+
     private val _builds = MutableStateFlow<List<BuildDto>>(emptyList())
     val builds: StateFlow<List<BuildDto>> = _builds
-
 
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
+
+    fun clearError() {
+        _error.value = null
+    }
 
     fun loadBuilds(slug: String) {
         viewModelScope.launch {
             _loading.value = true
-            repo.getBuilds(slug).onSuccess { list ->
-                _builds.value = list
-            }
+            repo.getBuilds(slug)
+                .onSuccess { _builds.value = it }
+                .onFailure { _error.value = it.message ?: "Gagal memuat data" }
             _loading.value = false
         }
     }
 
-
-    fun createBuild(slug: String, req: BuildRequest, onResult: (Boolean, String?) -> Unit) {
+    fun createBuild(slug: String, req: BuildRequest, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val res = repo.createBuild(slug, req)
-            res.onSuccess { id -> onResult(true, null) }.onFailure { e -> onResult(false, e.message) }
+            repo.createBuild(slug, req)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message ?: "Gagal menambah build" }
         }
     }
 
-
-    fun updateBuild(id: Int, req: BuildRequest, onResult: (Boolean, String?) -> Unit) {
+    fun updateBuild(id: Int, req: BuildRequest, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val res = repo.updateBuild(id, req)
-            res.onSuccess { onResult(true, null) }.onFailure { e -> onResult(false, e.message) }
+            repo.updateBuild(id, req)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message ?: "Gagal mengubah build" }
         }
     }
 
-
-    fun deleteBuild(id: Int, onResult: (Boolean, String?) -> Unit) {
+    fun deleteBuild(id: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
-            val res = repo.deleteBuild(id)
-            res.onSuccess { onResult(true, null) }.onFailure { e -> onResult(false, e.message) }
+            repo.deleteBuild(id)
+                .onSuccess { onSuccess() }
+                .onFailure { _error.value = it.message ?: "Gagal menghapus build" }
         }
     }
 }

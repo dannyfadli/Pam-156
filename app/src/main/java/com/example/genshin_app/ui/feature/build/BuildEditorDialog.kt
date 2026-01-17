@@ -1,7 +1,9 @@
 package com.example.genshin_app.ui.feature.build
 
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -43,19 +46,58 @@ fun BuildEditorDialog(
                     play.takeIf { it.isNotBlank() },
                     isMeta
                 )
-            }) { Text("Simpan") }
+            }) {
+                Text("Simpan")
+            }
         },
         dismissButton = {
-            Button(onClick = onDismiss) { Text("Batal") }
+            Button(onClick = onDismiss) {
+                Text("Batal")
+            }
         },
+        title = { Text("Build Editor") },
         text = {
             Column {
-                OutlinedTextField(title, { title = it }, label = { Text("Title") })
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(desc, { desc = it }, label = { Text("Description") })
+
+                OutlinedTextField(
+                    value = desc,
+                    onValueChange = { desc = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(play, { play = it }, label = { Text("Playstyle") })
+
+                OutlinedTextField(
+                    value = play,
+                    onValueChange = { play = it },
+                    label = { Text("Playstyle") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // ===== TOGGLE IS_META =====
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Meta Build")
+                    Switch(
+                        checked = isMeta,
+                        onCheckedChange = { isMeta = it }
+                    )
+                }
             }
         }
     )
 }
+

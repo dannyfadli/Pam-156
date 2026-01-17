@@ -8,37 +8,67 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class CharacterViewModel(
-    private val repo: CharacterRepository,
+    private val repository: CharacterRepository
 ) : ViewModel() {
 
     private val _characters = MutableStateFlow<List<CharacterDto>>(emptyList())
+    val characters = _characters.asStateFlow()
+
     private val _query = MutableStateFlow("")
+    val query = _query.asStateFlow()
 
-    // 🔥 STATE YANG AKAN DI-COLLECT UI
-    val characters: StateFlow<List<CharacterDto>> =
-        combine(_characters, _query) { list, q ->
-            val query = q.trim().lowercase()
-            if (query.isEmpty()) list
-            else list.filter {
-                it.name.lowercase().contains(query) ||
-                        it.slug.lowercase().contains(query)
-            }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList()
-        )
-
-    val query: StateFlow<String> = _query.asStateFlow()
-
-    fun loadCharacters() {
-        viewModelScope.launch {
-            repo.getCharacters()
-                .onSuccess { _characters.value = it }
-        }
-    }
+    private val _filter = MutableStateFlow(CharacterFilter())
+    val filter = _filter.asStateFlow()
 
     fun setQuery(q: String) {
         _query.value = q
+    }
+
+    fun setVision(v: String?) {
+        _filter.update { it.copy(vision = v) }
+    }
+
+    fun setWeapon(w: String?) {
+        _filter.update { it.copy(weapon = w) }
+    }
+
+    fun setNation(n: String?) {
+        _filter.update { it.copy(nation = n) }
+    }
+
+    fun setRarity(r: Int?) {
+        _filter.update { it.copy(rarity = r) }
+    }
+
+    // 🔥 SEARCH + FILTER
+    val filteredCharacters = combine(
+        characters,
+        query,
+        filter
+    ) { chars, q, f ->
+        chars.filter {
+            (q.isBlank() || it.name.contains(q, true)) &&
+                    (f.vision == null || it.vision == f.vision) &&
+                    (f.weapon == null || it.weapon == f.weapon) &&
+                    (f.nation == null || it.nation == f.nation) &&
+                    (f.rarity == null || it.rarity == f.rarity)
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptyList()
+    )
+
+    fun loadCharacters() {
+        viewModelScope.launch {
+            repository.getCharacters()
+                .onSuccess { list ->
+                    _characters.value = list
+                }
+                .onFailure { error ->
+                    // TODO: handle error (log / snackbar)
+                    error.printStackTrace()
+                }
+        }
     }
 }

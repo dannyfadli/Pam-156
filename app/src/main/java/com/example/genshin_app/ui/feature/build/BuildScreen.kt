@@ -4,7 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -20,9 +22,11 @@ fun BuildScreen(
     navController: NavController,
     slug: String,
     viewModel: BuildViewModel,
+    onNavigateHome: () -> Unit,
 ) {
     val builds by viewModel.builds.collectAsState()
     val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
 
     var showCreate by remember { mutableStateOf(false) }
     var editTarget by remember { mutableStateOf<BuildDto?>(null) }
@@ -31,56 +35,115 @@ fun BuildScreen(
         viewModel.loadBuilds(slug)
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Scaffold (
+        bottomBar = {
+            BottomAppBar {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = { onNavigateHome() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                    }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Builds for: $slug",
-                style = MaterialTheme.typography.titleMedium
-            )
+                    Text(
+                        text = "Builds for: $slug",
+                        style = MaterialTheme.typography.titleMedium
+                    )
 
-            Button(onClick = { showCreate = true }) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text("Tambah")
+                    Button(onClick = { showCreate = true }) {
+                        Icon(Icons.Default.Add, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Tambah")
+                    }
+                }
             }
         }
+    ) { padding ->
 
-        Spacer(modifier = Modifier.height(12.dp))
 
-        if (loading) {
-            CircularProgressIndicator()
-            return@Column
-        }
+        Column(modifier = Modifier.padding(16.dp)) {
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(builds) { b ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (loading) {
+                CircularProgressIndicator()
+                return@Column
+            }
+
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(builds) { b ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        elevation = CardDefaults.cardElevation(4.dp)
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(b.title, style = MaterialTheme.typography.titleSmall)
-                            b.playstyle?.let { Text(it) }
-                        }
+                        Column(modifier = Modifier.padding(12.dp)) {
 
-                        Row {
-                            IconButton(onClick = { editTarget = b }) {
-                                Icon(Icons.Default.Edit, contentDescription = "Edit")
+                            // ===== TITLE =====
+                            Text(
+                                text = b.title,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Spacer(Modifier.height(4.dp))
+
+                            // ===== META BADGE =====
+                            Text(
+                                text = if (b.is_meta == 1) "META BUILD" else "NON-META",
+                                color = if (b.is_meta == 1)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.outline,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+
+                            Spacer(Modifier.height(6.dp))
+
+                            // ===== DESCRIPTION =====
+                            b.description?.let {
+                                Text("Desc: $it", style = MaterialTheme.typography.bodySmall)
                             }
 
-                            IconButton(onClick = {
-                                viewModel.deleteBuild(b.id) { ok, _ ->
-                                    if (ok) viewModel.loadBuilds(slug)
+                            // ===== PLAYSTYLE =====
+                            b.playstyle?.let {
+                                Text("Playstyle: $it", style = MaterialTheme.typography.bodySmall)
+                            }
+
+                            Spacer(Modifier.height(6.dp))
+
+                            // ===== META INFO =====
+                            b.created_by?.let {
+                                Text("By: $it", style = MaterialTheme.typography.labelSmall)
+                            }
+
+                            b.created_at?.let {
+                                Text("Created: $it", style = MaterialTheme.typography.labelSmall)
+                            }
+
+                            b.updated_at?.let {
+                                Text("Updated: $it", style = MaterialTheme.typography.labelSmall)
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            // ===== ACTION BUTTON =====
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                IconButton(onClick = { editTarget = b }) {
+                                    Icon(Icons.Default.Edit, contentDescription = "Edit")
                                 }
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete")
+
+                                IconButton(onClick = {
+                                    viewModel.deleteBuild(b.id) {
+                                        viewModel.loadBuilds(slug)
+                                    }
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Delete")
+                                }
                             }
                         }
                     }
@@ -90,7 +153,6 @@ fun BuildScreen(
     }
 
     /* ================= CREATE ================= */
-
     if (showCreate) {
         BuildEditorDialog(
             onDismiss = { showCreate = false },
@@ -101,13 +163,11 @@ fun BuildScreen(
                         title = title,
                         description = desc,
                         playstyle = play,
-                        is_meta = if (isMeta) 1 else 0 // ✅ Boolean → Int
+                        is_meta = if (isMeta) 1 else 0
                     )
-                ) { ok, _ ->
-                    if (ok) {
-                        showCreate = false
-                        viewModel.loadBuilds(slug)
-                    }
+                ) {
+                    showCreate = false
+                    viewModel.loadBuilds(slug)
                 }
             }
         )
@@ -120,7 +180,7 @@ fun BuildScreen(
             initialTitle = target.title,
             initialDesc = target.description,
             initialPlaystyle = target.playstyle,
-            initialIsMeta = target.is_meta == 1, // ✅ Int → Boolean
+            initialIsMeta = target.is_meta == 1,
             onDismiss = { editTarget = null },
             onSave = { title, desc, play, isMeta ->
                 viewModel.updateBuild(
@@ -129,15 +189,20 @@ fun BuildScreen(
                         title = title,
                         description = desc,
                         playstyle = play,
-                        is_meta = if (isMeta) 1 else 0 // ✅ Boolean → Int
+                        is_meta = if (isMeta) 1 else 0
                     )
-                ) { ok, _ ->
-                    if (ok) {
-                        editTarget = null
-                        viewModel.loadBuilds(slug)
-                    }
+                ) {
+                    editTarget = null
+                    viewModel.loadBuilds(slug)
                 }
             }
         )
     }
+    error?.let { msg ->
+        ErrorDialog(
+            message = msg,
+            onDismiss = { viewModel.clearError() }
+        )
+    }
+
 }

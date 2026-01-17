@@ -19,6 +19,7 @@ import com.example.genshin_app.ui.feature.auth.screen.LoginScreen
 import com.example.genshin_app.ui.feature.auth.screen.RegisterScreen
 import com.example.genshin_app.ui.feature.auth.viewmodel.AuthViewModel
 import com.example.genshin_app.ui.feature.auth.viewmodel.LoginViewModel
+import com.example.genshin_app.ui.feature.auth.viewmodel.LogoutViewModel
 import com.example.genshin_app.ui.feature.auth.viewmodel.RegisterViewModel
 import com.example.genshin_app.ui.feature.build.BuildScreen
 import com.example.genshin_app.ui.feature.build.BuildViewModel
@@ -37,6 +38,7 @@ fun NavGraph(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { innerPadding ->
+        val authViewModel: AuthViewModel = viewModel()
 
         NavHost(
             navController = navController,
@@ -92,10 +94,22 @@ fun NavGraph(
                 val characterViewModel: CharacterViewModel = viewModel {
                     CharacterViewModel(container.characterRepository)
                 }
+                val logoutViewModel: LogoutViewModel = viewModel {
+                    LogoutViewModel(container.authRepository, authViewModel = authViewModel)
+                }
 
                 HomeScreen(
                     navController = navController,
                     viewModel = characterViewModel,
+                    logoutViewModel = logoutViewModel,
+                    onNavigateLogin = {
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(Routes.HOME) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
                 )
             }
 
@@ -119,6 +133,14 @@ fun NavGraph(
                     navController = navController,
                     slug = slug,
                     viewModel = buildViewModel,
+                    onNavigateHome = {
+                        navController.navigate(Routes.HOME) {
+                            popUpTo(Routes.BUILDS) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    },
                 )
             }
         }
