@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">Genshin_app</string>
+
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="logout">Logout</string>
+
+    <!-- Validation -->
+    <string name="error_empty_field">Field tidak boleh kosong</string>
+    <string name="error_login_failed">Login gagal</string>
+    <string name="error_register_failed">Register gagal</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard">Dashboard</string>
+    <string name="welcome">Welcome</string>
+
+    <!-- Character -->
+    <string name="character_list">Character List</string>
+    <string name="character_detail">Character Detail</string>
+    <string name="search_character">Search Character</string>
+    <string name="vision">Vision</string>
+    <string name="rarity">Rarity</string>
+    <string name="weapon">Weapon</string>
+    <string name="artifact">Artifact</string>
+
+    <!-- Build -->
+    <string name="build">Build</string>
+    <string name="add_build">Add Build</string>
+    <string name="update_build">Update Build</string>
+    <string name="delete_build">Delete Build</string>
+    <string name="stat_priority">Stat Priority</string>
+
+    <!-- General -->
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="loading">Loading...</string>
+</resources>

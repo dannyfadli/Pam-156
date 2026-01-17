@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+        <!-- Padding -->
+        <dimen name="padding_xs">4dp</dimen>
+        <dimen name="padding_sm">8dp</dimen>
+        <dimen name="padding_md">16dp</dimen>
+        <dimen name="padding_lg">24dp</dimen>
+        <dimen name="padding_xl">32dp</dimen>
+
+        <!-- Margin -->
+        <dimen name="margin_sm">8dp</dimen>
+        <dimen name="margin_md">16dp</dimen>
+        <dimen name="margin_lg">24dp</dimen>
+
+        <!-- Text size -->
+        <dimen name="text_xs">12sp</dimen>
+        <dimen name="text_sm">14sp</dimen>
+        <dimen name="text_md">16sp</dimen>
+        <dimen name="text_lg">20sp</dimen>
+        <dimen name="text_xl">24sp</dimen>
+
+        <!-- Icon & Image -->
+        <dimen name="icon_sm">24dp</dimen>
+        <dimen name="icon_md">32dp</dimen>
+        <dimen name="icon_lg">48dp</dimen>
+
+        <!-- Card -->
+        <dimen name="card_radius">16dp</dimen>
+        <dimen name="card_elevation">6dp</dimen>
+
+
+</resources>
